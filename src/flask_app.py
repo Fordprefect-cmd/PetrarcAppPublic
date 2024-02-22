@@ -139,9 +139,7 @@ def process_string(stringa_iniziale):
         posizione_dalla_fine = lunghezza_sillabazione - posizione_accento + 1
 
         if posizione_dalla_fine == 1:
-           
-
- return 'tronca'
+            return 'tronca'
         elif posizione_dalla_fine == 2:
             return 'piana'
         elif posizione_dalla_fine == 3:
@@ -150,6 +148,7 @@ def process_string(stringa_iniziale):
             return 'bisdrucciolo'
         elif posizione_dalla_fine == 5:
             return 'trisdrucciolo'
+
 
     # Define a function to return the ranges of indices of vowels next to each other in a word,
     # used in the UI for the user to understand where to manually add dieresis and synaeresis
@@ -264,13 +263,11 @@ def process_string(stringa_iniziale):
         
         if sillabazione is None:
             # If syllabification is not found in df_cleaned, call the SillaBot function
-            sillab
-
-azione = SillaBot(parola)
+            sillabazione = SillaBot(parola)
         
+        
+            # Find the index of the syllable containing the accented vowel relative to the word
         num_elementi_sillabazione = sillabazione.count('-') + 1 if sillabazione else None
-
-        # Find the index of the syllable containing the accented vowel relative to the word
         '''
         later we will search with the function "trova_sillabe_con_vocali_accentate(df)" to establish the position of the indices of
         syllables with accented vowels relative to the verse.
