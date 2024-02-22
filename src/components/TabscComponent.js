@@ -65,13 +65,13 @@ export default function BasicTabs() {
         </Tabs>
       </Box>
       <CustomTabPanel value={value} index={0}>
-        Item One
-        {/* Pass handleChildResponse as a prop */}
+        Imput tab
+  {/* Pass handleChildResponse as a prop */}
         <ImputPage onResponse={handleChildResponse} />
       </CustomTabPanel>
       
       <CustomTabPanel className='tablePanel' value={value} index={1}>
-        Item Two
+        Answer Tab
         <RenderTables responseData={responseData} /> {/* Pass responseData as prop */}
       </CustomTabPanel>
       
