@@ -1,43 +1,22 @@
+### Comments Translation:
 
-'''
-#ANCHOR - trova il modo di disegnare o schematizzare quello che succede nel tuo codice.
-
-Per adesso prendi e ristrottura la data structure con tutto quello che ti servirà.
-
-- Ocio monosillabi atoni => hai già assegnato il conto partendo da 1 qui, puoi usare "0" come simbolo per no accento (post UI che funziona)
-- Ocio aggiungi modalità per assonanza eventualmente
-
-- occhio per far andare questo file devi essere dentro la cartella petrarc_app_react/src,
-- metre npm start lo devi fare nella cartella petrarc_app_react
-- + avere attivo entrambi il flask e react servers.
-
-- Fai file doc di corrispondenza/spiegazione valori tabella + funzioni + corrispondenza metrica italiana + UI
-- x doc: di fatto devono trovare/implementare una soluzione al matching con le parole del dizionario
-in generale, questo riassume gli apostrofi, numeri, plurali e singolari che ho già volendo e usare 
-quelli per sillabare maybe. 
-- x doc: devi anche spiegare i nomi delle variabili, tutto il processo e il passaggio "parole in parola" tipo
-quindi il doc è diviso in 2, la spiegaz della teoria e del python, e la spiegaz della UI in relaz con la tabella python
-'''
-
-
-
+```python
+# Import necessary libraries
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import pandas as pd
 import re
 import json
 
-
+# Initialize Flask app
 app = Flask(__name__)
-CORS(app)  # Configura CORS per il tuo Flask app
+CORS(app)  # Configure CORS for your Flask app
 
-
-
-# Importa i dati necessari: un DataFrame con la sillabazione (df_DizionarioItaliano) e una lista di sillabe uniche (df_Sillabe_uniche)
+# Import necessary data: a DataFrame with syllabication (df_DizionarioItaliano) and a list of unique syllables (df_Sillabe_uniche)
 df_DizionarioItaliano = pd.read_csv('df_cleaned (1).csv')
 df_Sillabe_uniche = pd.read_csv('my_dataframe.csv')
 
-# Creo un dizionario per mappare le versioni accentate delle vocali
+# Create a dictionary to map accented versions of vowels
 mapping_noAcc_to_Acc = {
     "a": ["à", "á", "â", "ä"],
     "e": ["è", "é", "ê"],
@@ -46,7 +25,7 @@ mapping_noAcc_to_Acc = {
     "u": ["ù", "ú", "û", "ü"]
 }
 
-# Definisco liste di vocali accentate e non accentate, e una lista di consonanti italiane
+# Define lists of accented and non-accented vowels, and a list of Italian consonants
 italian_vowels_acc = ["á", "à", "ä", "â", "è", "é", "ê", "í", "ì", "î", "ó", "ò", "ö", "ô", "ú", "ù", "ü", "û"]
 italian_vowels_no_acc = ["a", "e", "i", "o", "u"]
 italian_vowels = italian_vowels_acc + italian_vowels_no_acc
@@ -54,13 +33,14 @@ consonanti_italiane = ['b', 'c', 'd', 'f', 'g', 'h', 'l', 'm', 'n', 'p', 'q', 'r
 
 
 @app.route('/')
-
 def index():
-    return "Server is running"  # Non è più necessario rendere una pagina HTML se clicchi al link vedi questo
+    return "Server is running"  # No need to render an HTML page anymore, if you click the link you'll see this
 
 @app.route('/get_tables', methods=['POST'])
 def get_tables():
-
+    """
+    Endpoint to process input text and return data tables.
+    """
     data = request.json
     multiline_input = data.get('multiline_input', '')
     multiline_input = multiline_input.lower()
@@ -68,17 +48,13 @@ def get_tables():
     # For demonstration, let's just print it
     print('Received text:', multiline_input)
 
-
-
-
-
     input_lines = multiline_input.split('\n')
     ajax_responses = []
 
     for line_index, line in enumerate(input_lines, start=1):
         line = line.strip()
         if line:
-            # Processa ogni linea e ottieni i DataFrame risultanti
+            # Process each line and get resulting DataFrames
             df, df_conto_assoluto = process_string(line)
             df['Riga_testo_indice_parola'] = f"{line_index}." + (df.index + 1).astype(str)  
             megatabella_df_json = df.to_json(orient='records')
@@ -91,34 +67,35 @@ def get_tables():
                 'response': response
             })
 
-   
     response = jsonify({'ajaxResponses': ajax_responses})
 
     return response
 
-
 if __name__ == "__main__":
     app.run(debug=True)
 
-# Definisco una funzione per l'analisi del testo riga per riga
+# Define a function for text analysis line by line
 def process_string(stringa_iniziale):
-    # Definisco una funzione per la sillabazione delle parole
+    """
+    Function to process the input string line by line.
+    """
+    # Define a function for syllabifying words
     '''
-    Per ottenere la sillabazione di ogni parola in un verso ho 2 sistemi, 
-    grazie a ciascuno dei dataset importati in precedenza (df_cleaned, Sillabe_uniche1).
-    Prima controllo se la parola ha già un corrispettivo in df_cleaned (più avanti nel codice),
-    se non lo ha, viene marcata "false" nella colonna "Trovata" e con la funzione SillaBot le sillabe in df_Sillabe_uniche 
-    vengono usate come "setaccio" per sillabare approssimamente la parola.
+    To obtain the syllabication of each word in a line, I have 2 systems, 
+    thanks to each of the datasets imported previously (df_cleaned, Sillabe_uniche1).
+    First, I check if the word already has a counterpart in df_cleaned (later in the code),
+    if not, it is marked "false" in the "Found" column and with the SillaBot function the syllables in df_Sillabe_uniche 
+    are used as a "sieve" to syllabify the word approximately.
     '''
     def SillaBot(parola):
-        # Ottieni la lista delle sillabe uniche
+        # Get the list of unique syllables
         sillabe = df_Sillabe_uniche['Sillaba'].tolist()
         componenti = []
 
         i = 0
         while i < len(parola):
             for sillaba in sillabe:
-                lunghezza_sillaba = len(sillaba) if not pd.isna(sillaba) else 0  # Verifica NaN
+                lunghezza_sillaba = len(sillaba) if not pd.isna(sillaba) else 0  # Check for NaN
                 if parola[i:i+lunghezza_sillaba] == sillaba:
                     componenti.append(sillaba)
                     i += lunghezza_sillaba
@@ -140,9 +117,9 @@ def process_string(stringa_iniziale):
 
         return sillabazione
 
-    # Definisco una funzione per la Sinalefe
+    # Define a function for Synalepha
     def Sinalefe(parole_da_cercare):
-        entries_sinalefe = []  # Inizializza la lista delle entries_sinalefe qui
+        entries_sinalefe = []  # Initialize the list of Synalepha entries here
 
         for i in range(len(parole_da_cercare) - 1):
             if parole_da_cercare[i][-1] in italian_vowels and parole_da_cercare[i + 1][0] in italian_vowels:
@@ -150,12 +127,12 @@ def process_string(stringa_iniziale):
             else:
                 entries_sinalefe.append(False)
 
-        # Aggiungo False per l'ultima parola nella lista
+        # Add False for the last word in the list
         entries_sinalefe.append(False)
 
-        return entries_sinalefe  # Ritorna la lista delle entries_sinalefe Sinalefe
+        return entries_sinalefe  # Return the list of Synalepha entries
 
-    # Definisco una funzione per catalogare le parole in base alla posizione dell'accento dalla fine della parola
+    # Define a function to categorize words based on the accent position from the end of the word
     def tipo_di_parola(row):
         if pd.isna(row['PosizioneAccento']):
             return pd.NA
@@ -164,7 +141,9 @@ def process_string(stringa_iniziale):
         posizione_dalla_fine = lunghezza_sillabazione - posizione_accento + 1
 
         if posizione_dalla_fine == 1:
-            return 'tronca'
+           
+
+ return 'tronca'
         elif posizione_dalla_fine == 2:
             return 'piana'
         elif posizione_dalla_fine == 3:
@@ -174,9 +153,8 @@ def process_string(stringa_iniziale):
         elif posizione_dalla_fine == 5:
             return 'trisdrucciolo'
 
-
-    # Definisco una funzione che ritorna i range degli indici di vocali una affianco all'altra in una parola,
-    # serve nella UI all'utente per capire dove aggiungere dieresi e sineresi manualmente
+    # Define a function to return the ranges of indices of vowels next to each other in a word,
+    # used in the UI for the user to understand where to manually add dieresis and synaeresis
     def trova_range_vocali(parola):
         ranges = []
         indice_iniziale = None
@@ -196,71 +174,64 @@ def process_string(stringa_iniziale):
             lunghezza_range = len(parola) - indice_iniziale
             if lunghezza_range > 1:
                 ranges.append((indice_iniziale, len(parola) - 1))
-        # in caso non vi siano range contigui di vocali e la parola 
-        # sia un alternanza di 1 vocale e n consonanti allora ritorna false
+        # if there are no contiguous ranges of vowels and the word
+        # is an alternation of 1 vowel and n consonants then return false
         if len(ranges) == 0 or all(end - start == 0 for start, end in ranges):
             return "false"
 
         return ranges
 
-
-    
-    # Definisco una funzione che ritorni le posizioni degli indici delle sillabe accentate
-    # relative all'intero verso 
-    # PROBLEMA DEVO FAR SCALARE I VALORI A PARTIRE DALLA PAROLA DOVE SUCCEDONO LE CONDIZIONI
+    # Define a function that returns the positions of the indices of the accented vowels syllables
+    # relative to the entire verse
+    # PROBLEM I HAVE TO SCALE THE VALUES STARTING FROM THE WORD WHERE THE CONDITIONS OCCUR
     def trova_sillabe_con_vocali_accentate(df):
-        # Unisco tutte le entry non-NaN della colonna "Sillabazione" in una grande stringa
+        # Join all non-NaN entries of the "Sillabazione" column into a single string
         grande_stringa_sillabazione = '-'.join(df['Sillabazione'].dropna())
 
-        # Divido la grande stringa in una lista di sillabe
+        # Split the big string into a list of syllables
         sillabe = grande_stringa_sillabazione.split('-')
 
-        # Inizializzo una lista per gli indici delle sillabe con vocali accentate
+        # Initialize a list for the indices of syllables with accented vowels
         indici_sillabe_accentate = []
         
-        # Regex per trovare vocali accentate
+        # Regex to find accented vowels
         regex_vocali_accentate = re.compile(r'[áàäâèéêíìîóòöôúùüû]', re.IGNORECASE)
 
-        # Itera attraverso le sillabe e trova quelle con vocali accentate, salvando la posizione nell'indice di ciascuna sillaba accentata
+        # Iterate through the syllables and find those with accented vowels, saving the position in the index of each accented syllable
         for i, sillaba in enumerate(sillabe, start=1):
             if regex_vocali_accentate.search(sillaba):
                 indici_sillabe_accentate.append(i)
 
-# Le seguenti condizioni servono a scalare in avanti o indietro le posizioni degli indici delle sillabe
-# accentate nel verso in base alla presenza delle sinalefe/dieresi/sineresi, le quali fondono (o dividono) 2 sillabe in 1
+        # The following conditions are used to scale forward or backward the positions of the indices of the accented syllables in the verse
+        # based on the presence of synalepha/dieresis/synesis, which merge (or divide) 2 syllables into 1
 
-        # Condizione 1
+        # Condition 1
         for index in range(len(df['Sillabazione'])):
-            if df['Sinalefe'][index]:  # Se la parola ha Sinalefe True
+            if df['Sinalefe'][index]:  # If the word has True Synalepha
                 corresponding_index = indici_sillabe_accentate[index] + 1 
                 indici_sillabe_accentate = [i - 1 if i > corresponding_index else i for i in indici_sillabe_accentate]
 
-        # Condizione 2
+        # Condition 2
         for index in range(len(df['Sillabazione'])):
-            if 'sineresi' in df['DiexSin_eresi'][index]:  # Se la parola ha "sineresi" nella colonna "DiexSin_eresi"
+            if 'sineresi' in df['DiexSin_eresi'][index]:  # If the word has "sineresi" in the "DiexSin_eresi" column
                 corresponding_index = indici_sillabe_accentate[index] + 1 
                 indici_sillabe_accentate = [i - 1 if i > corresponding_index else i for i in indici_sillabe_accentate]
 
-        # Condizione 3
+        # Condition 3
         for index in range(len(df['Sillabazione'])):
-            if 'dieresi' in df['DiexSin_eresi'][index]:  # Se la parola ha "dieresi" nella colonna "DiexSin_eresi"
+            if 'dieresi' in df['DiexSin_eresi'][index]:  # If the word has "dieresi" in the "DiexSin_eresi" column
                 corresponding_index = indici_sillabe_accentate[index] + 1 
                 indici_sillabe_accentate = [i + 1 if i > corresponding_index else i for i in indici_sillabe_accentate]
 
         return indici_sillabe_accentate
 
-
-
-
-
-    # Definisco una funzione che che assegno le condizioni sineresi e dieresi alle parole che rispettano le condizioni
-
+    # Define a function that assigns synesis and dieresis conditions to words that meet the conditions
     def check_sineresi_dieresi(substringa_rima, ultima_parola):
-        # Condizione 1 - scremiamo solo le ultime 1 o 2 sillabe di ogni parola o monosillbi di vocali che non hanno
+        # Condition 1 - we only skim the last 1 or 2 syllables of each word or monosyllables of vowels that don't have
         if '-' in substringa_rima and substringa_rima.count('-') >= 2 or len(substringa_rima) == 1:
             return "false"
         
-        # Condizione 2 - la sineresi si Creo sempre tra le ultime 2 sillabe della parola dentro il verso
+        # Condition 2 - synesis always occurs between the last 2 syllables of the word within the verse
         if '-' in substringa_rima and substringa_rima.count('-') == 1 and not ultima_parola:
             index_of_dash = substringa_rima.index('-')
             if (
@@ -269,41 +240,42 @@ def process_string(stringa_iniziale):
             ):
                 return "sineresi"
 
-        # Condizione 3 - la dieresi si ha sempre nell'ultima sillaba dell'ultima parola del verso
+        # Condition 3 - dieresis always occurs in the last syllable of the last word of the verse
         if '-' not in substringa_rima and len(substringa_rima) >= 2 and ultima_parola and substringa_rima[1] in italian_vowels_no_acc:
-            return "dieresi" # parola per testare: "costei"
+            return "dieresi" # word to test: "costei"
 
         return "false"
 
-
-    # Creo il dizionario delle parole e delle sillabazioni dal nuovo dataset
+    # Create the dictionary of words and syllabifications from the new dataset
     parole = {}
     for _, row in df_DizionarioItaliano.iterrows():
         parola = row['Parola']
         sillabazione = row['Sillabazione']
         parole[parola] = sillabazione
 
-    # Suddivido la stringa iniziale in parole
+    # Split the initial string into words
     parole_da_cercare = stringa_iniziale.split()
 
-    # Inizializzo la variabile per le righe del DataFrame
+    # Initialize the variable for the DataFrame rows
     rows = []
 
-    # Cerco le parole nella stringa iniziale e Aggiungo le righe al DataFrame
+    # Search for words in the initial string and Add rows to the DataFrame
     for i, parola in enumerate(parole_da_cercare):
         trovata = parola in parole
         sillabazione = parole.get(parola, None)
         
         if sillabazione is None:
-            # Se la sillabazione non è trovata in df_cleaned, chiama la funzione SillaBot
-            sillabazione = SillaBot(parola)
+            # If syllabification is not found in df_cleaned, call the SillaBot function
+            sillab
+
+azione = SillaBot(parola)
         
         num_elementi_sillabazione = sillabazione.count('-') + 1 if sillabazione else None
 
-        # Troviamo l'indice della sillaba contenente la vocale accentata relativa alla parola
+        # Find the index of the syllable containing the accented vowel relative to the word
         '''
-        più avanti cercheremo con la funzione "trova_sillabe_con_vocali_accentate(df)" di stabilire la posizione degli indici delle 
-        sillabe con vocali accentate relativamente al verso.
+        later we will search with the function "trova_sillabe_con_vocali_accentate(df)" to establish the position of the indices of
+        syllables with accented vowels relative to the verse.
         '''
         posizione_accento = None
         if sillabazione:
@@ -315,46 +287,46 @@ def process_string(stringa_iniziale):
         rows.append({'Parola': parola, 'Trovata': trovata, 'Sillabazione': sillabazione,
                      'NumElementiSillabazione': num_elementi_sillabazione, 'PosizioneAccento': posizione_accento})
 
-    # Creo il DataFrame principale
+    # Create the main DataFrame
     df = pd.DataFrame(rows)
     
-    # Aggiungo una colonna 'Substringa Rima' al DataFrame
-    # La colonna 'Substringa Rima' contiene l'entry 'Sillabazione' suddivisa al primo carattere incluso tra le vocali accentate
+    # Add a 'Rima Substring' column to the DataFrame
+    # The 'Rima Substring' column contains the 'Sillabazione' entry split at the first character inclusive between accented vowels
     df['Substringa_Rima'] = df['Sillabazione'].str.extract('([áàäâèéêíìîóòöôúùüû].*)')
 
-    # Aggiungo una colonna booleana indicando se ogni parola è l'ultima nella linea
+    # Add a boolean column indicating if each word is the last in the line
     df['Ultima_Parola'] = df['Parola'] == parole_da_cercare[-1]
 
 
-    # Utilizzo della funzione per popolare la colonna 'DiexSin_eresi' del dataframe
+    # Use the function to populate the 'DiexSin_eresi' column of the dataframe
     df['DiexSin_eresi'] = df.apply(lambda row: check_sineresi_dieresi(row['Substringa_Rima'], row['Ultima_Parola']), axis=1)
 
-    # Utilizzo della funzione Sinalefe() per popolare la colonna 'DiexSin_eresi' del dataframe
+    # Use the Sinalefe() function to populate the 'DiexSin_eresi' column of the dataframe
     df['Sinalefe'] = Sinalefe(parole_da_cercare)
 
 
-    # Applico la funzione a ogni parola nel DataFrame e Creo la nuova colonna 'Range_vocali'
+    # Apply the function to each word in the DataFrame and Create the new 'Range_vocali' column
     df['Range_vocali'] = df['Parola'].apply(trova_range_vocali)
 
-    # Applico la funzione per calcolare il tipo di parola e Aggiungo la colonna al DataFrame
+    # Apply the function to calculate the type of word and Add the column to the DataFrame
     df['TipoDiParola'] = df.apply(tipo_di_parola, axis=1)    
 
-    # Calcola il 'conto assoluto', ovvero il numero totale di sillabe di ogni parola in tutto il verso,
+    # Calculate the 'absolute count', i.e., the total number of syllables of each word throughout the verse,
     conto_assoluto = df['NumElementiSillabazione'].sum()
-    # Calcola il conteggio di Sineresi
+    # Calculate the count of Synesis
     Sineresi_count = (df['DiexSin_eresi'] == 'sineresi').sum()
-    # Calcola il conteggio di Sinalefe
+    # Calculate the count of Synalepha
     Sinalefe_count = (df['Sinalefe'] == True).sum()
     Dieresi_count = (df['DiexSin_eresi'] == 'dieresi').sum()
 
-    # Creo una lista con li indici delle sillabe con vocali accentate relative al verso
+    # Create a list with the indices of the syllables with accented vowels relative to the verse
     posiz_acc_in_verso = trova_sillabe_con_vocali_accentate(df)
     
     totale_condizioni = Sineresi_count+Sinalefe_count+Dieresi_count
-    #Calcola il computo metrico delle sillabe del verso
+    #Calculate the metric computation of the syllables of the verse
     computo_finale = conto_assoluto-totale_condizioni
     
-    # Creo il nuovo DataFrame df_conto_assoluto che riassume i valori di "df" 
+    # Create the new df_conto_assoluto DataFrame summarizing the values of "df"
     df_conto_assoluto = pd.DataFrame({
         'conto_assoluto': [conto_assoluto],
         'Totale_Sineresi': [Sineresi_count],
@@ -366,23 +338,23 @@ def process_string(stringa_iniziale):
     
     def cerca_parole_alternative(substringa_rima, num_elementi_sillabazione): 
         parole_alternative = []
-        # Calcola il numero di sillabe in modo "veloce"
+        # Calculate the number of syllables quickly
         df_DizionarioItaliano['N_sillabe_fast'] = df_DizionarioItaliano['Sillabazione'].str.count('-') + 1
-        # Cerca le parole che fanno rima con la parola data
+        # Search for words that rhyme with the given word
         
         matches = df_DizionarioItaliano[df_DizionarioItaliano['Sillabazione'].str.endswith(substringa_rima)] #substringa rima match
         for _, row in matches.iterrows():
-            # Controlla se il numero di sillabe è lo stesso
+            # Check if the number of syllables is the same
             if row['N_sillabe_fast'] == num_elementi_sillabazione:
-                parole_alternative.append(row['Parola']) # la row è di match, il quale è un filtro di df_DizionarioItaliano
+                parole_alternative.append(row['Parola']) # row is a match, which is a filter from df_DizionarioItaliano
                 if len(parole_alternative) == 3:
                     break
         return parole_alternative if parole_alternative else "false"
 
-    # Aggiungi la nuova colonna "Alternative" al DataFrame principale
-    # i risutati iniziano spesso per "a" perchè sono le prime parole incontrate nel dizionario in ordine alfabetico
+    # Add the new "Alternative" column to the main DataFrame
+    # results often start with "a" because they are the first words encountered in the dictionary in alphabetical order
     df['Alternative'] = df.apply(lambda row: cerca_parole_alternative(row['Substringa_Rima'], row['NumElementiSillabazione']), axis=1)
     
     
-    # Ritorna i DataFrame 
+    # Return the DataFrames 
     return df, df_conto_assoluto 
